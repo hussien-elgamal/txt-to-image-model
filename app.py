@@ -1,5 +1,22 @@
+import os
+import subprocess
+
+# Install libraries if not already installed
+def install_packages():
+    packages = [
+        'streamlit',
+        'torch==2.0.1',
+        'diffusers==0.6.0',
+        'transformers==4.32.0',
+        'Pillow'
+    ]
+    for package in packages:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
+
+# Run the install function
+install_packages()
+
 import streamlit as st
-import torch
 from torch import autocast
 from diffusers import StableDiffusionPipeline
 from PIL import Image, ImageFilter
@@ -7,7 +24,7 @@ import io
 
 # Model and device setup
 modelid = "CompVis/stable-diffusion-v1-4"
-device = "cuda"
+device = "cpu"  # Use CPU if GPU is not available
 
 # Load the Stable Diffusion pipeline
 pipe = StableDiffusionPipeline.from_pretrained(
@@ -47,4 +64,3 @@ if st.button('Generate Image'):
         image.save(buffer, format='PNG')
         buffer.seek(0)
         st.download_button(label="Download Image", data=buffer, file_name='generatedimage.png', mime='image/png')
-
