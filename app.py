@@ -1,21 +1,15 @@
 import streamlit as st
 import torch
 from PIL import Image
-
-# Try to import StableDiffusionPipeline
-try:
-    from diffusers import StableDiffusionPipeline
-except ImportError as e:
-    st.error("The 'diffusers' library is not installed or the import failed. Please check your installation.")
-    st.stop()
+from diffusers import StableDiffusionPipeline
 
 # Initialize and cache the model
 @st.cache_resource
 def load_model():
     try:
-        # Load the model with float16 precision for efficiency
-        model = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16)
-        model.to("cpu")  # Use CPU instead of GPU
+        # Load the model with float32 precision for CPU usage
+        model = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float32)
+        model.to("cpu")  # Use CPU
         return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
