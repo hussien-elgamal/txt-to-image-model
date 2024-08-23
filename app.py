@@ -1,62 +1,53 @@
-import subprocess
-import sys
 import streamlit as st
-from torch import autocast
-from transformers import AutoTokenizer, AutoModelForCausalLM
 from diffusers import StableDiffusionPipeline
 import torch
 from PIL import Image
 
-# Function to install packages
-def install_packages():
-    packages = [
-        'transformers',
-        'diffusers',
-        'accelerate',
-        'torch',
-        'Pillow'
-    ]
-    for package in packages:
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
-
-# Run the install function
-install_packages()
-
-# Streamlit app
-st.title("Text to Image Model")
-st.write("Welcome to the text-to-image model app!")
-
-# Load pre-trained model and tokenizer
+# Initialize and cache the model
 @st.cache_resource
 def load_model():
-    # Load Stable Diffusion model
-    model = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16)
-    model.to("cuda")  # Use GPU if available
-    return model
+    try:
+        # Load the model with float16 precision for efficiency
+        model = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16)
+        model.to("cuda")  # Move the model to GPU
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
 
-# Initialize model
+# Load the model
 model = load_model()
 
-# Text input from user
+# Streamlit app layout
+st.title("Stable Diffusion Image Generation")
+
+# Text input for prompt
 text_prompt = st.text_input("Enter a text prompt:", "A fantasy landscape")
 
-# Generate image button
+# Button to generate image
 if st.button("Generate Image"):
-    with autocast("cuda"):
-        # Generate image
-        image = model(text_prompt).images[0]
-        
-        # Display image
-        st.image(image, caption="Generated Image")
+    if model:
+        if text_prompt:
+            try:
+                with torch.autocast("cuda"):
+                    # Generate image from text prompt
+                    result = model(text_prompt)
+                    image = result.images[0]
 
-# Option to download the image
-if st.button("Download Image"):
-    with autocast("cuda"):
-        # Generate image again
-        image = model(text_prompt).images[0]
-        
-        # Save image to file
-        image.save("generated_image.png")
-        
-        # Provide download link
-        st.download_button("Download Image", "generated_image.png", "image/png")
+                # Display the generated image
+                st.image(image, caption="Generated Image", use_column_width=True)
+
+                # Save the image to a file
+                image.save("generated_image.png")
+
+                # Success message
+                st.success("Image generated and saved as 'generated_image.png'")
+            except Exception as e:
+                st.error(f"Error generating image: {e}")
+        else:
+            st.error("Please enter a text prompt.")
+    else:
+        st.error("Model not loaded properly.")
+
+# Add a footer with a disclaimer or additional information
+st.markdown("**Note:** The quality and content of the generated image may vary based on the text prompt.")
