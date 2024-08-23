@@ -1,22 +1,5 @@
-import os
-import subprocess
-
-# Install libraries if not already installed
-def install_packages():
-    packages = [
-        'streamlit',
-        'torch==2.0.1',
-        'diffusers==0.6.0',
-        'transformers==4.32.0',
-        'Pillow'
-    ]
-    for package in packages:
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
-
-# Run the install function
-install_packages()
-
 import streamlit as st
+import torch
 from torch import autocast
 from diffusers import StableDiffusionPipeline
 from PIL import Image, ImageFilter
