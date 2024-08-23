@@ -15,7 +15,7 @@ def load_model():
     try:
         # Load the model with float16 precision for efficiency
         model = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16)
-        model.to("cuda")  # Move the model to GPU
+        model.to("cpu")  # Use CPU instead of GPU
         return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
@@ -35,8 +35,8 @@ if st.button("Generate Image"):
     if model:
         if text_prompt:
             try:
-                with torch.autocast("cuda"):
-                    # Generate image from text prompt
+                # Generate image from text prompt
+                with torch.no_grad():
                     result = model(text_prompt)
                     image = result.images[0]
 
