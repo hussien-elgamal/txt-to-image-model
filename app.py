@@ -7,16 +7,18 @@ from diffusers import StableDiffusionPipeline
 @st.cache_resource
 def load_model():
     try:
-        # Load the model with float32 precision for CPU usage
+        # Check for GPU availability and load the model accordingly
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        # Load the model with appropriate precision for the device
         model = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float32)
-        model.to("cpu")  # Use CPU
-        return model
+        model.to(device)
+        return model, device
     except Exception as e:
         st.error(f"Error loading model: {e}")
-        return None
+        return None, None
 
-# Load the model
-model = load_model()
+# Load the model and device
+model, device = load_model()
 
 # Streamlit app layout
 st.title("Stable Diffusion Image Generation")
@@ -26,12 +28,12 @@ text_prompt = st.text_input("Enter a text prompt:", "A fantasy landscape")
 
 # Button to generate image
 if st.button("Generate Image"):
-    if model:
+    if model and device:
         if text_prompt:
             try:
                 # Generate image from text prompt
                 with torch.no_grad():
-                    result = model(text_prompt)
+                    result = model(text_prompt, num_inference_steps=50, guidance_scale=7.5)
                     image = result.images[0]
 
                 # Display the generated image
