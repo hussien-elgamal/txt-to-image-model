@@ -1,7 +1,13 @@
 import streamlit as st
-from diffusers import StableDiffusionPipeline
 import torch
 from PIL import Image
+
+# Try to import StableDiffusionPipeline
+try:
+    from diffusers import StableDiffusionPipeline
+except ImportError as e:
+    st.error("The 'diffusers' library is not installed or the import failed. Please check your installation.")
+    st.stop()
 
 # Initialize and cache the model
 @st.cache_resource
